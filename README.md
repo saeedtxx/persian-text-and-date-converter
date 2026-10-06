@@ -53,13 +53,14 @@ WordPress: 5.3 or higher
 
 PHP: 7.4 or higher
 
-👤 Author
-Saeed Tosifyan
+## 👤 Author
 
-Website: medseo.ir
+**Saeed Tosifyan**
 
-LinkedIn: linkedin.com/in/saeedtx
+* Website: [medseo.ir](https://medseo.ir)
+* LinkedIn: [linkedin.com/in/saeedtx](https://linkedin.com/in/saeedtx)
 
-📄 License
-This plugin is free software licensed under the GNU General Public License v2.0 or later.
+## 📄 License
+
+This project is open-source software licensed under the GNU General Public License v2.0 or later.
 
