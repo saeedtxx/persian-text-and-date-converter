@@ -1,43 +1,77 @@
 === Persian Text and Date Converter ===
 Contributors: saeedtx
-Tags: persian, farsi, date converter, arabic to persian, jalali
-Requires at least: 5.0
+Tags: persian, farsi, date converter, arabic to persian, jalali, shamsi
+Requires at least: 5.3
 Tested up to: 6.7
-Stable tag: 1.4
+Requires PHP: 7.4
+Stable tag: 2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
-به‌طور خودکار حروف عربی، اعداد و تاریخ میلادی را در محتوای وردپرس، نظرات، صفحات و آرشیوها به فارسی تبدیل می‌کند.
+تبدیل هوشمند و ایمن حروف عربی، اعداد و تاریخ‌های میلادی به فارسی و شمسی در محتوا، عناوین و دیدگاه‌ها بدون تغییر در پایگاه داده.
 
 == Description ==
-This plugin automatically converts Arabic characters (like ي and ك) to Persian (like ی and ک), Arabic and English numbers to Persian numbers, and Gregorian dates to Jalali (Persian) format. It works seamlessly across posts, pages, comments, archives, categories, and search pages, with full support for Persian WordPress installations.
 
-ویژگی‌ها:
-- تبدیل خودکار حروف عربی به فارسی
-- تبدیل اعداد عربی و انگلیسی به فارسی
-- تبدیل تاریخ میلادی به شمسی با فرمت زیبای فارسی (مثل "۱۹ فروردین ۱۴۰۴")
-- پشتیبانی از نوشته‌ها، برگه‌ها، نظرات، آرشیوها، دسته‌ها و جستجو
-- تبدیل محتوای قدیمی هنگام فعال‌سازی
+Persian Text and Date Converter is a lightweight, non-destructive WordPress plugin that automatically converts Arabic characters to Persian, English/Arabic numerals to Persian digits, and Gregorian dates to the Jalali (Shamsi) calendar.
+
+Starting in version 2.0, the plugin operates purely at runtime via WordPress display filters. It never alters your raw database entries, ensuring complete safety for your posts, images, Gutenberg block attributes, and custom code snippets.
+
+این افزونه بدون دستکاری مستقیم پایگاه داده، حروف عربی («ي» و «ك»)، اعداد انگلیسی/عربی و تاریخ‌های میلادی را در خروجی قالب، نوشته‌ها، برگه‌ها و دیدگاه‌ها به معادل استاندارد فارسی و شمسی تبدیل می‌کند.
+
+ویژگی‌های کلیدی:
+
+حفظ سلامت کدها و HTML: تفکیک هوشمند تگ‌های HTML، کلاس‌های CSS، لینک‌ها و ویژگی‌های بلاک‌های گوتنبرگ به طوری که ساختار قالب و تصاویر دچار مشکل نشوند.
+
+عملکرد در لایه نمایش (Run-time): محتوای دیتابیس هرگز تغییر نمی‌کند و در صورت غیرفعال کردن افزونه، داده‌های اصلی دست‌نخورده باقی می‌‌مانند.
+
+پشتیبانی کامل از تابع wp_date: سازگاری مدرن با سیستم تاریخ وردپرس ۵.۳ به بعد و حفظ ساختار فرمت‌بندی تاریخ پیش‌فرض قالب.
+
+اصلاح هوشمند حروف: تبدیل کاراکترهای عربی پرکاربرد بدون حذف حروف معتبر فارسی (مانند حفظ حروف دارای همزه مثل «ئ»).
+
+سبک و بسیار سریع: بدون فشار به منابع سرور و بدون نیاز به کوئری‌های سنگین به دیتابیس.
 
 == Installation ==
-1. Upload the `persian-text-and-date-converter` folder to the `/wp-content/plugins/` directory.
-2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. The plugin will start converting content automatically.
+
+پوشه persian-text-and-date-converter را در مسیر /wp-content/plugins/ بارگذاری کنید یا فایل زیپ آن را از بخش «افزودن افزونه» نصب کنید.
+
+افزونه را از بخش «افزونه‌ها» در پیشخوان وردپرس فعال کنید.
+
+تبدیل متن‌ها، اعداد و تاریخ‌ها به صورت خودکار در سایت شما اعمال خواهد شد.
 
 == Frequently Asked Questions ==
-= Does it work with Persian WordPress? =
-Yes, it fully supports Persian WordPress and converts dates like "April 8, 2025" to "۱۹ فروردین ۱۴۰۴".
 
-= Will it convert old posts? =
-Yes, it converts existing posts when you activate the plugin.
+= آیا فعال‌سازی این افزونه محتوای دیتابیس من را تغییر می‌دهد؟ =
+خیر. در نسخه ۲.۰ تمامی تبدیل‌ها در لحظه رندر و نمایش صفحه انجام می‌شوند. دیتابیس و کدهای شما ۱۰۰٪ امن و بدون تغییر باقی می‌مانند.
+
+= آیا اعداد داخل لینک‌ها یا تصاویر به فارسی تبدیل می‌شوند؟ =
+خیر. الگوریتم جدید افزونه تگ‌های HTML و آدرس‌ها را تفکیک می‌کند تا تصاویر، پیوندها و کلاس‌های استایل بدون مشکل کار کنند.
+
+= افزونه با چه نسخه‌هایی از وردپرس و PHP سازگار است؟ =
+این افزونه با وردپرس نسخه ۵.۳ و بالاتر (به دلیل استفاده از هوک‌های نوین wp_date) و PHP نسخه ۷.۴ و بالاتر (شامل PHP 8.1, 8.2 و 8.3) سازگار است.
 
 == Changelog ==
+
+= 2.0 =
+
+بازتولید معماری افزونه: حذف کامل دستکاری دیتابیس و انتقال کل فرآیند تبدیل به فیلترهای لایه نمایش (the_content, the_title, comment_text).
+
+حل مشکل تگ‌های HTML: جلوگیری از تخریب آدرس تصاویر، کلاس‌های استایل و شورت‌کدها با جداسازی تگ‌ها پیش از تبدیل کاراکتر.
+
+به‌روزرسانی موتور تاریخ: جایگزینی مکانیزم‌های منسوخ با پشتیبانی استاندارد از هوک wp_date.
+
+اصلاح حروف مجاز: رفع اشکال جایگزینی نادرست کاراکترهایی چون «ئ» و «ؤ».
+
+حذف هوک سنگین فعال‌سازی: رفع خطر خطای Timeout و اتمام حافظه (Memory Exhaustion) در سایت‌های دارای محتوای حجیم.
+
 = 1.4 =
-* Improved function naming for better compatibility and added direct access prevention.
+
+بهبود نام‌گذاری توابع و جلوگیری از دسترسی مستقیم به فایل افزونه.
 
 = 1.0 =
-* Initial release.
+
+انتشار اولیه.
 
 == Upgrade Notice ==
-= 1.4 =
-Enhanced compatibility with WordPress standards and improved security.
+
+= 2.0 =
+نسخه ۲.۰ یک به‌روزرسانی حیاتی است که مشکلات شکستگی کدهای HTML و خطاهای دیتابیس را برطرف کرده و امنیت و سازگاری کامل با نسخه‌های جدید وردپرس را فراهم می‌کند.
