@@ -45,6 +45,7 @@ HTML markup and URL attributes are protected via regular expression lookarounds 
 ### Via Git:
 ```bash
 git clone [https://github.com/saeedtx/persian-text-and-date-converter.git](https://github.com/saeedtx/persian-text-and-date-converter.git) wp-content/plugins/persian-text-and-date-converter
+```
 
 
 ⚙️ Requirements
@@ -61,3 +62,4 @@ LinkedIn: linkedin.com/in/saeedtx
 
 📄 License
 This plugin is free software licensed under the GNU General Public License v2.0 or later.
+
