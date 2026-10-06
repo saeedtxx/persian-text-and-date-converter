@@ -4,7 +4,7 @@ Tags: persian, farsi, date converter, arabic to persian, jalali, shamsi
 Requires at least: 5.3
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
