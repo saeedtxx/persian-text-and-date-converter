@@ -3,36 +3,34 @@
   <h1>Persian Text and Date Converter</h1>
   <p><strong>Non-destructive, runtime conversion of Arabic characters, numbers, and Gregorian dates into standard Persian and Jalali formats for WordPress.</strong></p>
 
-  [![WordPress Tested](https://img.shields.io/badge/WordPress-5.3+-blue.svg)](https://wordpress.org/)
-  [![PHP Version](https://img.shields.io/badge/PHP-7.4+-purple.svg)](https://php.net/)
-  [![License: GPL v2+](https://img.shields.io/badge/License-GPLv2+-green.svg)](LICENSE)
-  [![Latest Version](https://img.shields.io/badge/version-2.0.0-success.svg)](https://github.com/saeedtx)
+  [![WordPress Tested](https://img.shields.io/badge/WordPress-5.3%2B-blue.svg)](https://wordpress.org/)
+  [![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://php.net/)
+  [![License: GPL v2+](https://img.shields.io/badge/License-GPLv2%2B-green.svg)](LICENSE)
+  [![Latest Version](https://img.shields.io/badge/version-2.0.1-success.svg)](https://github.com/saeedtxx/persian-text-and-date-converter)
 </div>
 
 ---
 
 ## 🚀 Overview
 
-**Persian Text and Date Converter** is a lightweight, non-destructive WordPress plugin tailored for Persian (Farsi) websites. 
+**Persian Text and Date Converter** is a lightweight, non-destructive WordPress plugin tailored for Persian (Farsi) websites.
 
 Unlike legacy converters that run permanent database search-and-replace queries (risking data corruption and breaking serialized options), this plugin handles all transformations purely at the **presentation/runtime layer**. The underlying database remains completely untouched, ensuring total safety and instant revertability if disabled.
 
 ## ✨ Key Features
 
 - **🛡️ 100% Non-Destructive:** Transforms content in real time across the frontend without modifying post records or database tables.
-- **🔤 Arabic to Persian Character Normalization:** Converts Arabic letters (such as `ي` and `ك`) to standard Persian characters (`ی` and `ک`).
-- **🔢 Digits Conversion:** Seamlessly converts English and Arabic numerals into standard Persian numbers (`۰ ۱ ۲ ۳ ۴ ۵ ۶ ۷ ۸ ۹`).
-- **📅 Gregorian to Jalali (Shamsi) Date Conversion:** Automatically converts publication and comment dates into the Solar Hijri calendar using native WordPress date filters.
-- **🌐 SEO & HTML Safe:** Intelligently isolates HTML tag attributes, script blocks, style tags, and URLs so that permalinks, image links, CSS classes, and sitemaps remain intact.
+- **🔤 Arabic to Persian Character Normalization:** Converts non-standard Arabic letters (`ي`, `ك`, `ى`) to standard Persian characters (`ی` and `ک`).
+- **🔢 Smart Digits Conversion:** Seamlessly converts English and Arabic numerals into standard Persian numbers (`۰ ۱ ۲ ۳ ۴ ۵ ۶ ۷ ۸ ۹`) while keeping alphanumeric technical terms intact (e.g., `MP3`, `PS5`, `H2O`).
+- **📅 Gregorian to Jalali (Shamsi) Date Conversion:** Automatically converts frontend dates into the Solar Hijri calendar using WordPress core's `wp_date` filter.
+- **🌐 SEO, Entity & HTML Safe:** Intelligently isolates HTML tags, HTML numeric/named entities (`&#8211;`), `<script>`, `<style>`, `<pre>`, `<code>`, `<svg>`, and URLs so permalinks, code snippets, CSS classes, and XML sitemaps remain intact.
 - **⚡ Broad Template Coverage:** Hooks cleanly into single posts, pages, post loops, archives, categories, search results, and comments.
 
 ## 🛠️ How It Works
 
 The plugin hooks into WordPress core filters:
-- Content and excerpt filters (`the_content`, `the_excerpt`, `the_title`, `comment_text`) for typography normalization.
-- Date filters (`get_the_date`, `get_the_time`, `get_comment_date`, `get_comment_time`) for Jalali calendar translation.
-
-HTML markup and URL attributes are protected via regular expression lookarounds and selective text-node replacements, preventing broken layout assets or corrupted hyperlinks.
+- **Content & Typography Filters:** `the_content`, `the_excerpt`, `the_title`, `comment_text`, and `get_the_archive_title` for character and numeral normalization.
+- **Date Filter:** `wp_date` for Jalali calendar translation (automatically bypassing machine-readable ISO/RFC/MySQL formats like `Y-m-d` and `DATE_W3C` to preserve SEO schemas).
 
 ## 📦 Installation
 
@@ -44,23 +42,19 @@ HTML markup and URL attributes are protected via regular expression lookarounds 
 
 ### Via Git:
 ```bash
-git clone [https://github.com/saeedtx/persian-text-and-date-converter.git](https://github.com/saeedtx/persian-text-and-date-converter.git) wp-content/plugins/persian-text-and-date-converter
+git clone [https://github.com/saeedtxx/persian-text-and-date-converter.git](https://github.com/saeedtxx/persian-text-and-date-converter.git) wp-content/plugins/persian-text-and-date-converter
 ```
-
-
 ⚙️ Requirements
 WordPress: 5.3 or higher
 
 PHP: 7.4 or higher
 
-## 👤 Author
+👤 Author
+Saeed Tosifyan
 
-**Saeed Tosifyan**
+Website: medseo.ir
 
-* Website: [medseo.ir](https://medseo.ir)
-* LinkedIn: [linkedin.com/in/saeedtx](https://linkedin.com/in/saeedtx)
+LinkedIn: linkedin.com/in/saeedtx
 
-## 📄 License
-
+📄 License
 This project is open-source software licensed under the GNU General Public License v2.0 or later.
-
