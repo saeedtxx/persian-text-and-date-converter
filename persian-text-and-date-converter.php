@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Persian Text and Date Converter
  * Description: به‌طور خودکار حروف عربی، اعداد و تاریخ میلادی را در محتوای وردپرس، نظرات، صفحات و عناوین به فارسی تبدیل می‌کند بدون آنکه ساختار کدهای HTML یا دیتابیس دستکاری شود.
- * Version: 2.0.0
+ * Version: 2.0.1
  * Author: Saeed Tosifyan
  * Author URI: https://linkedin.com/in/saeedtx
  * License: GPL-2.0+
@@ -13,24 +13,49 @@
  */
 
 if (!defined('ABSPATH')) {
-    exit; // خروج در صورت دسترسی مستقیم
+    exit;
+}
+
+/**
+ * بررسی درخواست‌های مدیریتی، فید، REST API و نقشه سایت
+ */
+function ptdc_should_skip_conversion() {
+    if (is_admin() || is_feed() || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+        return true;
+    }
+    if (function_exists('wp_is_xml_request') && wp_is_xml_request()) {
+        return true;
+    }
+    if ( ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) ) ) {
+        return true;
+    }
+    return false;
 }
 
 /**
  * تبدیل حروف عربی و اعداد تنها در متن خام
- * (حفظ سلامت تگ‌های HTML، اسکریپت‌ها، شورت‌کدها و لینک‌ها)
+ * (حفظ سلامت تگ‌های HTML، موجودیت‌های HTML، اسکریپت‌ها، بلاک‌های کد و لینک‌ها)
  */
 function ptdc_convert_text($content) {
-    if (empty($content) || is_admin() || is_feed() || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+    if (empty($content) || !is_string($content) || ptdc_should_skip_conversion()) {
         return $content;
     }
 
-    // تفکیک بخش‌های حساس شامل کامنت‌های HTML، اسکریپت‌ها، استایل‌ها، بلاک‌های کد، شورت‌کدها و تگ‌های HTML
+    // تفکیک دقیق بخش‌های حساس بدون تداخل تگ‌های تودرتو و حفظ HTML Entities
     $pattern = '/(
-        <!--.*?-->                                                            # کامنت‌های HTML و گوتنبرگ
-        |<(?:script|style|pre|code|svg)[^>]*>.*?<\/(?:script|style|pre|code|svg)> # بلوک‌های کد، اسکریپت و SVG
-        |<[^>]+>                                                              # سایر تگ‌های HTML
-        |\[[^\]]+\]                                                           # شورت‌کدهای وردپرس
+        <!--.*?-->                                     # کامنت‌های HTML و گوتنبرگ
+        |<script\b[^>]*>.*?<\/script>                  # تگ‌های اسکریپت
+        |<style\b[^>]*>.*?<\/style>                    # تگ‌های استایل
+        |<pre\b[^>]*>.*?<\/pre>                        # بلاک‌های pre
+        |<code\b[^>]*>.*?<\/code>                      # بلاک‌های code
+        |<svg\b[^>]*>.*?<\/svg>                        # تصاویر برداری SVG
+        |<textarea\b[^>]*>.*?<\/textarea>              # فیلدهای متنی فرم
+        |<kbd\b[^>]*>.*?<\/kbd>                        # کلیدهای صفحه‌کلید
+        |<samp\b[^>]*>.*?<\/samp>                      # خروجی نمونه برنامه
+        |<var\b[^>]*>.*?<\/var>                        # متغیرها
+        |<math\b[^>]*>.*?<\/math>                      # فرمول‌های ریاضی
+        |<[^>]+>                                       # سایر تگ‌های HTML
+        |&(?:#\d+|#x[0-9a-fA-F]+|[a-zA-Z0-9]+);        # موجودیت‌های HTML (مثل &#8211; و &sup2;)
     )/xis';
 
     $parts = preg_split($pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE);
@@ -39,38 +64,40 @@ function ptdc_convert_text($content) {
         return $content;
     }
 
-    // حروف عربی که باید اصلاح شوند (حفظ ئ و ؤ به دلیل کاربرد در فارسی)
-    $arabic_chars  = ['ي', 'ك', 'ة'];
-    $persian_chars = ['ی', 'ک', 'ه'];
-
-    // اعداد انگلیسی و عربی به فارسی
-    $en_arabic_numbers = [
+    static $search_chars = [
+        'ي', 'ك', 'ى',
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
         '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'
     ];
-    $persian_numbers = [
+    static $replace_chars = [
+        'ی', 'ک', 'ی',
         '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹',
         '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'
     ];
 
-    foreach ($parts as &$part) {
-        // نادیده گرفتن بخش‌های محافظت‌شده (تگ‌ها، شورت‌کدها و کامنت‌ها)
-        if (empty($part) || $part[0] === '<' || $part[0] === '[') {
+    // الگوی محافظت از لینک‌ها، ایمیل‌ها و عبارات فنی چسبیده به حروف لاتین (مثل MP3, H2O, PS5, v2.0)
+    $sub_pattern = '/(
+        https?:\/\/[^\s<"\'\]]+
+        |[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
+        |\b[a-zA-Z]+[0-9][a-zA-Z0-9._-]*\b
+        |\b[0-9]+[a-zA-Z][a-zA-Z0-9._-]*\b
+    )/ux';
+
+    foreach ($parts as $index => $part) {
+        if ($part === '' || $part[0] === '<' || $part[0] === '&') {
             continue;
         }
 
-        // تفکیک آدرس‌های خام وب (URLها) در متن تا اعداد داخل دامنه و مسیر آسیب نبینند
-        $url_pattern = '/(https?:\/\/[^\s<"\'\]]+)/ui';
-        $sub_parts = preg_split($url_pattern, $part, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $sub_parts = preg_split($sub_pattern, $part, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         if (is_array($sub_parts)) {
-            foreach ($sub_parts as &$sub_part) {
-                if (!preg_match('/^https?:\/\//i', $sub_part)) {
-                    $sub_part = str_replace($arabic_chars, $persian_chars, $sub_part);
-                    $sub_part = str_replace($en_arabic_numbers, $persian_numbers, $sub_part);
+            foreach ($sub_parts as $sub_index => $sub_part) {
+                // فقط بخش‌های زوج در preg_split با PREG_SPLIT_DELIM_CAPTURE متن عادی هستند
+                if ($sub_index % 2 === 0 && $sub_part !== '') {
+                    $sub_parts[$sub_index] = str_replace($search_chars, $replace_chars, $sub_part);
                 }
             }
-            $part = implode('', $sub_parts);
+            $parts[$index] = implode('', $sub_parts);
         }
     }
 
@@ -86,49 +113,63 @@ function ptdc_gregorian_to_jalali($gy, $gm, $gd) {
     $gy -= ($gy <= 1600) ? 0 : 1600;
     $gy2 = ($gm > 2) ? $gy + 1 : $gy;
     $days = 365 * $gy + (int)(($gy2 + 3) / 4) - (int)(($gy2 + 99) / 100) + (int)(($gy2 + 399) / 400) - 80 + $gd + $g_d_m[$gm - 1];
-    
+
     $jy += 33 * (int)($days / 12053);
     $days %= 12053;
     $jy += 4 * (int)($days / 1461);
     $days %= 1461;
     $jy += (int)(($days - 1) / 365);
-    
+
     if ($days > 365) {
         $days = ($days - 1) % 365;
     }
-    
+
     $jm = ($days < 186) ? 1 + (int)($days / 31) : 7 + (int)(($days - 186) / 30);
     $jd = 1 + (($days < 186) ? ($days % 31) : (($days - 186) % 30));
-    
+
     return [$jy, $jm, $jd];
+}
+
+/**
+ * بررسی کبیسه بودن سال شمسی
+ */
+function ptdc_is_jalali_leap($jy) {
+    $rem = ($jy + 2346) % 2820;
+    if ($rem < 0) {
+        $rem += 2820;
+    }
+    return (((($rem + 38) * 31) % 128) < 31);
 }
 
 /**
  * فرمت‌بندی تاریخ شمسی مطابق با الگوهای تاریخ وردپرس
  */
-function ptdc_format_jalali($timestamp, $format = '', $fallback = '') {
+function ptdc_format_jalali($timestamp, $format = '', $fallback = '', $timezone = null) {
     if (empty($format)) {
         $format = get_option('date_format');
     }
 
-    // عدم تغییر فرمت‌های استاندارد ماشینی و سئو (جلوگیری از خرابی نقشه سایت و فیدها)
-    $system_formats = ['c', 'r', 'U', DATE_W3C, DATE_ATOM, DATE_RSS];
-    if (in_array($format, $system_formats, true)) {
-        return !empty($fallback) ? $fallback : date($format, (int)$timestamp);
+    // محافظت از فرمت‌های ماشینی، سئو، اسکیما و دیتابیس (ISO 8601, RFC, MySQL, W3C)
+    $system_formats = ['c', 'r', 'U', 'Y-m-d', 'Y-m-d H:i:s', DATE_W3C, DATE_ATOM, DATE_RSS, DATE_RFC2822, DATE_RFC3339];
+    if (in_array($format, $system_formats, true) || strpos($format, 'Y-m-d\T') === 0) {
+        return !empty($fallback) ? $fallback : wp_date($format, (int)$timestamp, $timezone);
     }
 
     if (!is_numeric($timestamp)) {
-        $timestamp = current_time('timestamp');
+        $timestamp = time();
     }
 
-    $timezone = wp_timezone();
+    if (!($timezone instanceof DateTimeZone)) {
+        $timezone = wp_timezone();
+    }
+
     $datetime = new DateTime("@{$timestamp}");
     $datetime->setTimezone($timezone);
 
     $gy = (int)$datetime->format('Y');
     $gm = (int)$datetime->format('n');
     $gd = (int)$datetime->format('j');
-    $w  = (int)$datetime->format('w'); // روز هفته: ۰ (یکشنبه) تا ۶ (شنبه)
+    $w  = (int)$datetime->format('w');
 
     list($jy, $jm, $jd) = ptdc_gregorian_to_jalali($gy, $gm, $gd);
 
@@ -149,8 +190,13 @@ function ptdc_format_jalali($timestamp, $format = '', $fallback = '') {
         6 => ['شنبه', 'ش'],
     ];
 
+    $is_leap = ptdc_is_jalali_leap($jy);
+    $days_in_month = ($jm <= 6) ? 31 : (($jm <= 11 || $is_leap) ? 30 : 29);
+    $day_of_year = ($jm <= 6) ? (($jm - 1) * 31 + $jd - 1) : (186 + ($jm - 7) * 30 + $jd - 1);
+
     $replacements = [
         'Y' => sprintf('%04d', $jy),
+        'o' => sprintf('%04d', $jy),
         'y' => sprintf('%02d', $jy % 100),
         'm' => sprintf('%02d', $jm),
         'n' => (string)$jm,
@@ -160,15 +206,24 @@ function ptdc_format_jalali($timestamp, $format = '', $fallback = '') {
         'j' => (string)$jd,
         'l' => $days_of_week[$w][0],
         'D' => $days_of_week[$w][1],
+        'S' => 'ام',
+        't' => (string)$days_in_month,
+        'z' => (string)$day_of_year,
+        'L' => $is_leap ? '1' : '0',
+        'a' => ($datetime->format('a') === 'am') ? 'ق.ظ' : 'ب.ظ',
+        'A' => ($datetime->format('A') === 'AM') ? 'قبل از ظهر' : 'بعد از ظهر',
     ];
 
+    // پیمایش ایمن کاراکترهای UTF-8
+    $chars = preg_split('//u', $format, -1, PREG_SPLIT_NO_EMPTY);
+    if (!is_array($chars)) {
+        return $fallback;
+    }
+
     $output = '';
-    $len = strlen($format);
     $escaped = false;
 
-    for ($i = 0; $i < $len; $i++) {
-        $char = $format[$i];
-
+    foreach ($chars as $char) {
         if ($escaped) {
             $output .= $char;
             $escaped = false;
@@ -182,16 +237,22 @@ function ptdc_format_jalali($timestamp, $format = '', $fallback = '') {
 
         if (isset($replacements[$char])) {
             $output .= $replacements[$char];
-        } else {
+        } elseif (preg_match('/^[a-zA-Z]$/', $char)) {
             $output .= $datetime->format($char);
+        } else {
+            $output .= $char;
         }
     }
 
-    return ptdc_convert_text($output);
+    // تبدیل سریع اعداد تاریخ به فارسی
+    static $en_nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    static $fa_nums = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+
+    return str_replace($en_nums, $fa_nums, $output);
 }
 
 /**
- * فیلترهای نمایش متون (Run-time Filters بدون لمس دیتابیس)
+ * فیلترهای نمایش متون
  */
 add_filter('the_content', 'ptdc_convert_text', 20);
 add_filter('the_title', 'ptdc_convert_text', 20);
@@ -200,18 +261,11 @@ add_filter('comment_text', 'ptdc_convert_text', 20);
 add_filter('get_the_archive_title', 'ptdc_convert_text', 20);
 
 /**
- * فیلتر تاریخ‌های وردپرس
+ * فیلتر تاریخ وردپرس (wp_date در وردپرس ۵.۳+ پوشش‌دهنده اصلی get_the_date و date_i18n است)
  */
 add_filter('wp_date', function($formatted, $format, $timestamp, $timezone) {
-    if (is_admin() || is_feed() || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+    if (ptdc_should_skip_conversion()) {
         return $formatted;
     }
-    return ptdc_format_jalali($timestamp, $format, $formatted);
-}, 10, 4);
-
-add_filter('date_i18n', function($date, $format, $timestamp, $gmt) {
-    if (is_admin() || is_feed() || (function_exists('wp_is_json_request') && wp_is_json_request())) {
-        return $date;
-    }
-    return ptdc_format_jalali($timestamp, $format, $date);
+    return ptdc_format_jalali($timestamp, $format, $formatted, $timezone);
 }, 10, 4);
